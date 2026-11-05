@@ -27,11 +27,12 @@ The checked-in evaluation set is small and authored for the brief; its 100% scor
 
 ## UI decisions
 
-Warm white background, estate green, copper action accent, Fraunces display face, and system sans-serif body. The booking steps are Stay, Details, and Pay. Forms are labeled, focus-visible, mobile layouts avoid horizontal overflow, and server loading/error/empty states are included in the main workflows. Current artwork is a locally hosted illustrative SVG placeholder, not an actual resort photo; client photography is required before launch.
+Warm white background, estate green, copper action accent, Fraunces display face, and system sans-serif body. The booking steps are Stay, Details, and Pay. Forms are labeled, focus-visible, mobile layouts avoid horizontal overflow, and server loading/error/empty states are included in the main workflows. The customer-facing working brand is Wildfern Estate. Locally hosted Unsplash photographs give each stay category distinct imagery, but they are illustrative stock photos, not photos of this property. Approved client photography is required before launch; see [image-sources.md](image-sources.md).
 
 ## Assumptions
 
 - Fake rates, allotment, demo bookings, promo codes, demo credentials, and example enquiries are synthetic.
+- Wildfern Estate is a proposed working brand name for the demo; Company A's legal/business name is unchanged by this UI choice.
 - Demo allotments of 4/4/2/1 are deliberately below each category's demo capacity; production allotments must be set by the reservations team.
 - Online sales close at 12:00 IST on check-in day; dates and consent rules follow the supplied prompt assumptions.
 - Flexible cancellation policy and tax slab assumptions require client/CA confirmation.

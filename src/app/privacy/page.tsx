@@ -1,14 +1,10 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 
 export default function PrivacyPage() {
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-8 sm:px-8">
-      <Link
-        className="text-estate-green text-xs font-semibold tracking-[0.12em]"
-        href="/"
-      >
-        COMPANY A
-      </Link>
+      <BrandMark />
       <article className="mt-12">
         <p className="text-muted-green text-xs tracking-[0.15em] uppercase">
           Guest information
@@ -26,8 +22,8 @@ export default function PrivacyPage() {
           Contact details are used for booking and enquiry follow-up. Enquiry
           and booking records in this demo are held in server memory and reset
           when the local server restarts. A production retention period and DPDP
-          deletion/export workflow must be confirmed with Company A before
-          launch.
+          deletion/export workflow must be confirmed with the resort owner
+          before launch.
         </p>
         <p className="text-foreground/75 mt-4 text-sm leading-7">
           Consent text version {"booking-consent-v1"} and its timestamp are

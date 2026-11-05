@@ -4,6 +4,7 @@ import {
   AvailabilityResults,
   StaySearchForm,
 } from "@/components/guest-workflows";
+import { BrandMark } from "@/components/brand-mark";
 
 export const instant = false;
 
@@ -29,15 +30,7 @@ export default async function StaysPage({
   return (
     <main className="mx-auto min-h-screen max-w-360 px-5 sm:px-8 lg:px-14">
       <header className="border-line flex min-h-20 items-center justify-between border-b">
-        <Link
-          className="text-estate-green text-xs font-semibold tracking-[0.12em]"
-          href="/"
-        >
-          COMPANY A
-          <span className="text-muted-green mt-1 block text-[10px] font-normal">
-            COFFEE ESTATE · KARNATAKA
-          </span>
-        </Link>
+        <BrandMark />
         <Link className="text-estate-green text-sm underline" href="/events">
           Gatherings
         </Link>

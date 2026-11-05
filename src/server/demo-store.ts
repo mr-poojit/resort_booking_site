@@ -19,7 +19,7 @@ export const roomCategories = [
     totalUnits: 32,
     maxGuests: 3,
     basePaise: 680_000,
-    imagePath: "/estate-placeholder.svg",
+    imagePath: "/images/estate-room.jpg",
   },
   {
     slug: "garden-room",
@@ -28,7 +28,7 @@ export const roomCategories = [
     totalUnits: 32,
     maxGuests: 3,
     basePaise: 820_000,
-    imagePath: "/estate-placeholder.svg",
+    imagePath: "/images/garden-room.jpg",
   },
   {
     slug: "estate-villa",
@@ -37,7 +37,7 @@ export const roomCategories = [
     totalUnits: 6,
     maxGuests: 4,
     basePaise: 1_250_000,
-    imagePath: "/estate-placeholder.svg",
+    imagePath: "/images/estate-villa.jpg",
   },
   {
     slug: "family-villa",
@@ -46,7 +46,7 @@ export const roomCategories = [
     totalUnits: 6,
     maxGuests: 6,
     basePaise: 1_550_000,
-    imagePath: "/estate-placeholder.svg",
+    imagePath: "/images/family-villa.jpg",
   },
 ] as const;
 

@@ -186,7 +186,7 @@ export function AvailabilityResults({
           >
             <Image
               src={category.imagePath}
-              alt={`${category.name} illustrative placeholder`}
+              alt={`${category.name}, illustrative stock photograph; not the resort property`}
               fill
               loading="eager"
               sizes="(max-width: 640px) 100vw, 260px"

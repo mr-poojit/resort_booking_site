@@ -2,19 +2,20 @@ import { expect, test } from "@playwright/test";
 
 test("guest can search, hold a stay, pay in test mode, and reach confirmation", async ({
   page,
+  request,
 }) => {
-  await page.setExtraHTTPHeaders({
+  const clientHeaders = {
     "x-forwarded-for": `e2e-${Date.now()}-${Math.random()}`,
-  });
+  };
+  await page.setExtraHTTPHeaders(clientHeaders);
   await page.goto("/");
 
-  const stayOffset = 7 + Math.floor(Math.random() * 100);
-  const checkIn = new Date(Date.now() + stayOffset * 86_400_000)
-    .toISOString()
-    .slice(0, 10);
-  const checkOut = new Date(Date.now() + (stayOffset + 2) * 86_400_000)
-    .toISOString()
-    .slice(0, 10);
+  const { checkIn, checkOut } = await findAvailableStay(
+    request,
+    clientHeaders,
+    7 + Math.floor(Math.random() * 50),
+    2,
+  );
   await page.getByLabel("Check-in").fill(checkIn);
   await page.getByLabel("Check-out").fill(checkOut);
   await page.getByRole("button", { name: "Check availability" }).click();
@@ -38,6 +39,30 @@ test("guest can search, hold a stay, pay in test mode, and reach confirmation", 
     page.getByRole("heading", { name: "Thank you, Demo Guest." }),
   ).toBeVisible();
   await expect(page.getByText(/^RSV-/)).toBeVisible();
+});
+
+test("guest can submit a structured wedding enquiry with consent", async ({
+  page,
+}) => {
+  await page.setExtraHTTPHeaders({
+    "x-forwarded-for": `e2e-event-${Date.now()}-${Math.random()}`,
+  });
+  await page.goto("/events");
+  await page.getByLabel("Your name").fill("Event Guest");
+  await page.getByLabel("Email").fill("event@example.test");
+  await page.getByLabel("Phone").fill("+919000000002");
+  await page
+    .getByLabel("Preferred date")
+    .fill(new Date(Date.now() + 60 * 86_400_000).toISOString().slice(0, 10));
+  await page.getByLabel("Guest count").fill("250");
+  await page
+    .getByLabel("Venue and event requirements")
+    .fill("Wedding lawn and guest rooms for family.");
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Send event enquiry" }).click();
+
+  await expect(page.getByRole("status")).toContainText("with our Sales team");
+  await expect(page.locator("figure img")).toHaveJSProperty("complete", true);
 });
 
 test("admin APIs require a session and enforce role boundaries", async ({
@@ -95,16 +120,15 @@ test("admin APIs require a session and enforce role boundaries", async ({
   expect((await request.get("/api/admin/rates")).status()).toBe(200);
   expect((await request.get("/api/admin/promos")).status()).toBe(403);
 
-  const adminOffset = 30 + Math.floor(Math.random() * 100);
-  const checkIn = new Date(Date.now() + adminOffset * 86_400_000)
-    .toISOString()
-    .slice(0, 10);
-  const checkOut = new Date(Date.now() + (adminOffset + 1) * 86_400_000)
-    .toISOString()
-    .slice(0, 10);
   const holdClient = {
     "x-forwarded-for": `e2e-admin-${Date.now()}-${Math.random()}`,
   };
+  const { checkIn, checkOut } = await findAvailableStay(
+    request,
+    holdClient,
+    30 + Math.floor(Math.random() * 50),
+    1,
+  );
   const holdResponse = await request.post("/api/holds", {
     headers: holdClient,
     data: {
@@ -129,11 +153,20 @@ test("admin APIs require a session and enforce role boundaries", async ({
   });
   expect(belowHeld.status()).toBe(409);
 
+  const beforeRateUpdate = await request.get(
+    `/api/admin/rates?start=${checkIn}&end=${checkOut}`,
+  );
+  const currentDay = (await beforeRateUpdate.json()).calendar.find(
+    (day: { categorySlug: string; date: string }) =>
+      day.categorySlug === "estate-room" && day.date === checkIn,
+  );
+  expect(currentDay).toBeTruthy();
+
   const rateUpdate = await request.patch("/api/admin/rates", {
     data: {
       categorySlug: "estate-room",
       date: checkIn,
-      allotment: 3,
+      allotment: currentDay.sold + currentDay.held + 2,
       flexRatePaise: 900_000,
     },
   });
@@ -185,3 +218,36 @@ test("admin APIs require a session and enforce role boundaries", async ({
     ),
   ).toBe(true);
 });
+
+async function findAvailableStay(
+  request: import("@playwright/test").APIRequestContext,
+  headers: Record<string, string>,
+  startOffset: number,
+  nights: number,
+): Promise<{ checkIn: string; checkOut: string }> {
+  for (let offset = startOffset; offset < 170; offset += 1) {
+    const checkIn = new Date(Date.now() + offset * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    const checkOut = new Date(Date.now() + (offset + nights) * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    const response = await request.get(
+      `/api/availability?checkIn=${checkIn}&checkOut=${checkOut}&adults=2&children=0`,
+      { headers },
+    );
+    if (!response.ok()) continue;
+    const data = await response.json();
+    if (
+      data.categories.some(
+        (category: { slug: string; available: boolean }) =>
+          category.slug === "estate-room" && category.available,
+      )
+    ) {
+      return { checkIn, checkOut };
+    }
+  }
+  throw new Error(
+    "No open estate-room dates found in the seeded test calendar.",
+  );
+}

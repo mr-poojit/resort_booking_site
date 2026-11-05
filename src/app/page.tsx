@@ -1,13 +1,27 @@
 import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
+import { BrandMark } from "@/components/brand-mark";
 import { StaySearchForm } from "@/components/guest-workflows";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const instant = false;
 
 const stays = [
-  { name: "Rooms", count: "64 rooms", detail: "A slower start to the day." },
-  { name: "Villas", count: "12 villas", detail: "Room to settle in." },
+  {
+    name: "Rooms",
+    count: "64 rooms",
+    detail: "A slower start to the day.",
+    image: "/images/estate-room.jpg",
+    alt: "Illustrative photograph of a warm guest room; not the resort property.",
+  },
+  {
+    name: "Villas",
+    count: "12 villas",
+    detail: "Room to settle in.",
+    image: "/images/estate-villa.jpg",
+    alt: "Illustrative woodland cabin photograph; not the resort property.",
+  },
 ];
 
 export default async function Home() {
@@ -20,15 +34,7 @@ export default async function Home() {
       className="mx-auto min-h-screen max-w-360 px-5 sm:px-8 lg:px-14"
     >
       <header className="border-line flex min-h-20 items-center justify-between border-b">
-        <a
-          href="#top"
-          className="text-estate-green text-xs font-semibold tracking-[0.12em]"
-        >
-          COMPANY A
-          <span className="text-muted-green mt-1 block text-[10px] font-normal tracking-[0.08em]">
-            COFFEE ESTATE · KARNATAKA
-          </span>
-        </a>
+        <BrandMark />
         <nav
           aria-label="Main navigation"
           className="flex items-center gap-6 text-sm"
@@ -54,10 +60,10 @@ export default async function Home() {
             Chikkamagaluru, Karnataka
           </p>
           <h1 className="display-heading text-estate-green sm:text-display font-serif text-[3.5rem] leading-[0.98]">
-            A quieter kind of hillside stay.
+            {BRAND_NAME}
           </h1>
           <p className="text-foreground/75 mt-6 max-w-md text-base leading-7">
-            A coffee-estate resort, with rooms, villas and space to gather.
+            A quieter hillside stay, with rooms, villas and space to gather.
           </p>
           <a
             href="#stays"
@@ -72,15 +78,15 @@ export default async function Home() {
 
         <figure className="relative aspect-[1.16] overflow-hidden rounded-sm bg-[#dfe5dc]">
           <Image
-            src="/estate-placeholder.svg"
-            alt="Illustrative placeholder of a coffee-estate landscape; resort photography will replace it."
+            src="/images/wildfern-estate.jpg"
+            alt="Illustrative photograph of layered green hills at sunrise; not the resort property."
             fill
             preload
             sizes="(max-width: 1024px) 100vw, 55vw"
             className="object-cover"
           />
           <figcaption className="bg-soft-white/90 text-estate-green absolute right-3 bottom-3 px-3 py-2 text-[10px] tracking-[0.12em] uppercase">
-            Illustrative placeholder
+            Illustrative landscape
           </figcaption>
         </figure>
       </section>
@@ -108,8 +114,18 @@ export default async function Home() {
             <Link
               key={stay.name}
               href="/stays"
-              className="bg-background hover:bg-soft-white p-6 transition-colors sm:p-8"
+              className="group bg-background hover:bg-soft-white p-6 transition-colors sm:p-8"
             >
+              <div className="relative -mx-6 -mt-6 mb-6 aspect-[1.6] overflow-hidden rounded-sm bg-[#dfe5dc] sm:-mx-8 sm:-mt-8">
+                <Image
+                  src={stay.image}
+                  alt={stay.alt}
+                  fill
+                  loading="lazy"
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                />
+              </div>
               <span className="text-copper text-xs tracking-[0.14em] uppercase">
                 0{index + 1}
               </span>
@@ -150,7 +166,7 @@ export default async function Home() {
       </section>
 
       <footer className="border-line text-muted-green border-t py-5 text-xs">
-        Company A · Chikkamagaluru, Karnataka
+        Wildfern Estate · Chikkamagaluru, Karnataka
       </footer>
     </main>
   );

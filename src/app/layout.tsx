@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces } from "next/font/google";
+import { BRAND_NAME } from "@/lib/brand";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -8,8 +9,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Company A | Coffee Estate Resort",
-  description: "A coffee-estate resort in Chikkamagaluru, Karnataka.",
+  title: `${BRAND_NAME} | Coffee Estate Resort`,
+  description: `${BRAND_NAME}, a coffee-estate resort in Chikkamagaluru, Karnataka.`,
 };
 
 export default function RootLayout({

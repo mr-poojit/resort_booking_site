@@ -1,5 +1,8 @@
 # Deployment and Local Setup
 
+GitHub repository: https://github.com/mr-poojit/resort_booking_site
+Live app: Not deployed. The current demo is local-only and is not production-ready.
+
 ## Local demo
 
 Requirements: Node.js 22 LTS, npm, and Docker Compose.
@@ -11,6 +14,7 @@ Requirements: Node.js 22 LTS, npm, and Docker Compose.
 5. Seed fake accounts and sample rows with `npm run db:seed`.
 6. Start the website with `npm run dev`, then visit `http://localhost:3000`.
 7. Run checks with `npm run lint`, `npm run type-check`, `npm test`, `npm run test:e2e`, and `npm run eval:ai`.
+8. Regenerate the Word TDD with `npm run docs:tdd`.
 
 The local demo currently uses a process-memory store for API behavior. The Prisma schema and seed are included, but route handlers do not persist bookings or staff changes to PostgreSQL yet. Restarting the process resets the booking/admin/inbox state. Keep this as a local review demo; it is not ready for Vercel or real guest traffic.
 

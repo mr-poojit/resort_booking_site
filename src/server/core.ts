@@ -190,33 +190,43 @@ export function classifyEnquiry(text: string): EnquiryClassification {
     "check in",
     "availability",
   ]);
+  const structuredEvent = normalized.match(
+    /event type:\s*(wedding|corporate off.?site)/,
+  )?.[1];
   const scores: Array<[EnquiryCategory, number]> = [
     [
       "WEDDING",
-      score(normalized, [
-        "wedding",
-        "marriage",
-        "married",
-        "bride",
-        "groom",
-        "sister's wedding",
-      ]),
+      structuredEvent?.includes("wedding")
+        ? 1
+        : score(normalized, [
+            "wedding",
+            "marriage",
+            "married",
+            "bride",
+            "groom",
+            "sister's wedding",
+          ]),
     ],
     [
       "CORPORATE_OFFSITE",
-      score(normalized, [
-        "offsite",
-        "off-site",
-        "team",
-        "conference",
-        "corporate",
-        "workshop",
-        "meeting",
-        "retreat",
-        "company",
-      ]),
+      structuredEvent?.startsWith("corporate")
+        ? 1
+        : score(normalized, [
+            "offsite",
+            "off-site",
+            "team",
+            "conference",
+            "corporate",
+            "workshop",
+            "meeting",
+            "retreat",
+            "company",
+          ]),
     ],
-    ["ROOM_BOOKING", eventSpace && !lodgingContext ? 0 : roomScore],
+    [
+      "ROOM_BOOKING",
+      structuredEvent ? 0 : eventSpace && !lodgingContext ? 0 : roomScore,
+    ],
     ["COMPLAINT", score(normalized, COMPLAINT_TERMS)],
   ];
   scores.sort((left, right) => right[1] - left[1]);
@@ -247,7 +257,7 @@ export function classifyEnquiry(text: string): EnquiryClassification {
 
   return {
     category: first[0],
-    confidence: Math.min(0.98, 0.65 + first[1] * 0.1),
+    confidence: structuredEvent ? 0.98 : first[1] >= 1 ? 0.9 : 0.72,
     complaintAlert: false,
     unsorted: false,
     checkCategory: first[1] < 0.8,

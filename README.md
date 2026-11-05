@@ -1,6 +1,9 @@
-# Company A Direct Booking
+# Wildfern Estate Direct Booking
 
-A local demo of direct room booking and enquiry routing for Company A, a coffee-estate resort in Chikkamagaluru, Karnataka. It includes a guest search and booking flow, mock payment outcomes, an authenticated staff console, daily rate/allotment editing, promo codes, a shared enquiry inbox, and CSV export.
+A local demo for Wildfern Estate, a working brand name for Company A's coffee-estate resort in Chikkamagaluru, Karnataka. It includes a guest search and booking flow, mock payment outcomes, an authenticated staff console, daily rate/allotment editing, promo codes, a shared enquiry inbox, and CSV export.
+
+GitHub repository: https://github.com/mr-poojit/resort_booking_site
+Live app: Not deployed.
 
 ## Run locally
 
@@ -43,7 +46,7 @@ Set `SEED_DEMO_PASSWORD` to change the shared local demo password. These account
 - `/privacy` data-minimisation and consent notice
 - `/admin` staff sign-in, rates/allotment, bookings/CSV, promo codes, audit, and inbox
 
-Payments, message delivery, and outside reservation systems are simulated. No card data is collected. Public pages use replaceable illustrative SVG art, not property photography.
+Payments, message delivery, and outside reservation systems are simulated. No card data is collected. Public pages use locally served Unsplash stock photographs as illustrative design assets, not photographs of the resort. See [docs/image-sources.md](docs/image-sources.md); replace them with approved property photography before launch.
 
 ## Scripts
 
@@ -58,5 +61,6 @@ Payments, message delivery, and outside reservation systems are simulated. No ca
 | `npm run db:migrate -- --name init` | Create/apply the initial Prisma migration                                  |
 | `npm run db:seed`                   | Seed fake staff, categories, rates, promos, sample enquiries, and bookings |
 | `npm run eval:ai`                   | Run the 24-case deterministic router evaluation                            |
+| `npm run docs:tdd`                  | Regenerate `docs/technical-design.docx`                                    |
 
-See [deployment.md](deployment.md) for environment names, demo limits, and production prerequisites. See [docs/tdd-notes.md](docs/tdd-notes.md) for design decisions and assumptions.
+See [deployment.md](deployment.md) for environment names, demo limits, and production prerequisites. See [docs/technical-design.docx](docs/technical-design.docx) for the reviewer-ready Word TDD and [docs/tdd-notes.md](docs/tdd-notes.md) for the source notes.
