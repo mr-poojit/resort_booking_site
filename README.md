@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Company A Direct Booking
 
-## Getting Started
+A local demo of direct room booking and enquiry routing for Company A, a coffee-estate resort in Chikkamagaluru, Karnataka. It includes a guest search and booking flow, mock payment outcomes, an authenticated staff console, daily rate/allotment editing, promo codes, a shared enquiry inbox, and CSV export.
 
-First, run the development server:
+## Run locally
+
+Requirements: Node.js 22 LTS, npm, and Docker Compose.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+Copy-Item .env.example .env
+docker compose up -d postgres
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set `DATABASE_URL` in `.env` to `postgresql://resort:local-dev-only@localhost:5432/resort_booking?schema=public`. Then initialize the PostgreSQL schema and demo rows:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx prisma migrate dev --name init
+npm run db:seed
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open http://localhost:3000. The Prisma schema and repeatable seed are available, but the currently running booking/admin demo APIs use an in-memory store; booking changes reset when the server restarts and are not written to PostgreSQL. Do not deploy this demo for real guests until the API repository is switched to transactional PostgreSQL persistence.
 
-## Learn More
+## Demo accounts
 
-To learn more about Next.js, take a look at the following resources:
+Open `/admin` and use password `EstateDemo2026!` with one of these fake accounts:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `reservations@company-a.example` can change rates/allotment, view bookings, cancel, export, and triage enquiries.
+- `sales@company-a.example` can work the enquiry inbox.
+- `gm@company-a.example` has Reservations access plus promos and the audit view.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Set `SEED_DEMO_PASSWORD` to change the shared local demo password. These accounts must not be used in a real deployment.
 
-## Deploy on Vercel
+## Main routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/` home and date/guest search
+- `/stays` availability, rate plans, and tax-inclusive totals
+- `/stays/[slug]` stay details and date-specific prices
+- `/book` three-step Stay / Details / Pay flow
+- `/confirmation/[ref]` payment result and booking reference
+- `/events` structured wedding/offsite enquiry form
+- `/privacy` data-minimisation and consent notice
+- `/admin` staff sign-in, rates/allotment, bookings/CSV, promo codes, audit, and inbox
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Payments, message delivery, and outside reservation systems are simulated. No card data is collected. Public pages use replaceable illustrative SVG art, not property photography.
+
+## Scripts
+
+| Command                             | Purpose                                                                    |
+| ----------------------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`                       | Start the local app                                                        |
+| `npm run build`                     | Create a production build                                                  |
+| `npm test`                          | Run unit and domain tests                                                  |
+| `npm run test:e2e`                  | Run browser booking and role tests                                         |
+| `npm run lint`                      | Run ESLint                                                                 |
+| `npm run type-check`                | Run the TypeScript checker                                                 |
+| `npm run db:migrate -- --name init` | Create/apply the initial Prisma migration                                  |
+| `npm run db:seed`                   | Seed fake staff, categories, rates, promos, sample enquiries, and bookings |
+| `npm run eval:ai`                   | Run the 24-case deterministic router evaluation                            |
+
+See [deployment.md](deployment.md) for environment names, demo limits, and production prerequisites. See [docs/tdd-notes.md](docs/tdd-notes.md) for design decisions and assumptions.

@@ -1,0 +1,323 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  RESERVATIONS
+  SALES
+  GM
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  REFUNDED_LATE
+}
+
+enum HoldStatus {
+  ACTIVE
+  CONFIRMED
+  EXPIRED
+  RELEASED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum EnquiryCategory {
+  ROOM_BOOKING
+  WEDDING
+  CORPORATE_OFFSITE
+  COMPLAINT
+  UNSURE
+}
+
+enum EnquirySource {
+  WEB_FORM
+  EMAIL
+  WHATSAPP
+  PHONE
+  SOCIAL
+}
+
+enum EnquiryStatus {
+  UNSORTED
+  OPEN
+  REPLIED
+  CLOSED
+}
+
+enum PromoKind {
+  PERCENT
+  FLAT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(RESERVATIONS)
+  name         String
+  active       Boolean  @default(true)
+  auditLogs    AuditLog[]
+  assigned     Enquiry[] @relation("EnquiryOwner")
+  assignments  AssignmentEvent[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model RoomCategory {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  name        String
+  description String
+  totalUnits  Int
+  maxGuests   Int
+  imagePath   String
+  published   Boolean        @default(true)
+  rates       DailyRate[]
+  allotments  AllotmentDay[]
+  holds       Hold[]
+  bookings    Booking[]
+  createdAt   DateTime       @default(now())
+}
+
+model RatePlan {
+  id               String      @id @default(cuid())
+  code             String      @unique
+  name             String
+  description      String
+  cancellationText String
+  refundable       Boolean     @default(false)
+  rates            DailyRate[]
+  createdAt        DateTime    @default(now())
+}
+
+model DailyRate {
+  id             String       @id @default(cuid())
+  roomCategoryId String
+  ratePlanId     String
+  date           DateTime     @db.Date
+  amountPaise    Int
+  roomCategory   RoomCategory @relation(fields: [roomCategoryId], references: [id], onDelete: Cascade)
+  ratePlan       RatePlan     @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+
+  @@unique([roomCategoryId, ratePlanId, date])
+  @@index([date])
+}
+
+model AllotmentDay {
+  id             String       @id @default(cuid())
+  roomCategoryId String
+  date           DateTime     @db.Date
+  allotment      Int
+  sold           Int          @default(0)
+  held           Int          @default(0)
+  blackout       Boolean      @default(false)
+  roomCategory   RoomCategory @relation(fields: [roomCategoryId], references: [id], onDelete: Cascade)
+
+  @@unique([roomCategoryId, date])
+  @@index([date, blackout])
+}
+
+model TaxRule {
+  id                String   @id @default(cuid())
+  effectiveFrom     DateTime @db.Date
+  thresholdPaise    Int      @default(750000)
+  atOrBelowRateBps  Int      @default(500)
+  aboveRateBps      Int      @default(1800)
+  createdAt         DateTime @default(now())
+
+  @@unique([effectiveFrom])
+}
+
+model Hold {
+  id                String       @id @default(cuid())
+  idempotencyKey    String       @unique
+  roomCategoryId    String
+  ratePlanCode      String
+  checkIn           DateTime     @db.Date
+  checkOut          DateTime     @db.Date
+  adults            Int
+  children          Int          @default(0)
+  guestName         String
+  email             String
+  phone             String
+  expiresAt         DateTime
+  status            HoldStatus   @default(ACTIVE)
+  totalPaise        Int
+  discountPaise     Int          @default(0)
+  promoCode         String?
+  priceSnapshot     Json
+  roomCategory      RoomCategory @relation(fields: [roomCategoryId], references: [id])
+  nights            HoldNight[]
+  booking           Booking?
+  payment           Payment?
+  createdAt         DateTime     @default(now())
+
+  @@index([status, expiresAt])
+}
+
+model HoldNight {
+  id            String   @id @default(cuid())
+  holdId        String
+  date          DateTime @db.Date
+  tariffPaise   Int
+  discountPaise Int      @default(0)
+  gstPaise      Int
+  totalPaise    Int
+  hold          Hold     @relation(fields: [holdId], references: [id], onDelete: Cascade)
+
+  @@unique([holdId, date])
+}
+
+model Booking {
+  id                  String        @id @default(cuid())
+  ref                 String        @unique
+  holdId              String        @unique
+  roomCategoryId      String
+  status              BookingStatus @default(PENDING_PAYMENT)
+  guestName           String
+  email               String
+  phone               String
+  adults              Int
+  children            Int           @default(0)
+  foreignNational     Boolean       @default(false)
+  consentVersion      String
+  consentAt           DateTime
+  checkIn             DateTime      @db.Date
+  checkOut            DateTime      @db.Date
+  totalPaise          Int
+  discountPaise       Int           @default(0)
+  promoCode           String?
+  hold                Hold          @relation(fields: [holdId], references: [id])
+  roomCategory        RoomCategory  @relation(fields: [roomCategoryId], references: [id])
+  nights              BookingNight[]
+  createdAt           DateTime      @default(now())
+  cancelledAt         DateTime?
+}
+
+model BookingNight {
+  id            String   @id @default(cuid())
+  bookingId     String
+  date          DateTime @db.Date
+  tariffPaise   Int
+  discountPaise Int      @default(0)
+  gstPaise      Int
+  totalPaise    Int
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, date])
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  holdId         String        @unique
+  providerRef    String        @unique
+  idempotencyKey String        @unique
+  status         PaymentStatus @default(PENDING)
+  amountPaise    Int
+  hold           Hold          @relation(fields: [holdId], references: [id])
+  createdAt      DateTime      @default(now())
+  confirmedAt    DateTime?
+}
+
+model PromoCode {
+  id                   String    @id @default(cuid())
+  code                 String    @unique
+  kind                 PromoKind
+  value                Int
+  startsAt             DateTime  @db.Date
+  endsAt               DateTime  @db.Date
+  minimumNights        Int       @default(1)
+  active               Boolean   @default(true)
+  maximumUses          Int?
+  usedCount            Int       @default(0)
+  createdAt            DateTime  @default(now())
+}
+
+model Enquiry {
+  id             String         @id @default(cuid())
+  ref            String         @unique
+  source         EnquirySource
+  rawText        String
+  name           String?
+  email          String?
+  phone          String?
+  status         EnquiryStatus  @default(UNSORTED)
+  category       EnquiryCategory @default(UNSURE)
+  confidence     Float          @default(0)
+  extracted      Json?
+  ownerId        String?
+  owner          User?          @relation("EnquiryOwner", fields: [ownerId], references: [id])
+  aiResult       AiResult?
+  draft          Draft?
+  assignments    AssignmentEvent[]
+  firstReplyAt   DateTime?
+  complaintAlert Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+
+  @@index([status, category, createdAt])
+}
+
+model AiResult {
+  id           String          @id @default(cuid())
+  enquiryId    String          @unique
+  category     EnquiryCategory
+  confidence   Float
+  fields       Json
+  modelVersion String
+  createdAt    DateTime        @default(now())
+  enquiry      Enquiry         @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+}
+
+model Draft {
+  id        String   @id @default(cuid())
+  enquiryId String   @unique
+  body      String
+  flags     Json
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+  enquiry   Enquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+}
+
+model AssignmentEvent {
+  id        String   @id @default(cuid())
+  enquiryId String
+  userId    String
+  reason    String
+  createdAt DateTime @default(now())
+  enquiry   Enquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId, createdAt])
+}
+
+model ExportRun {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  rowCount  Int
+  createdAt DateTime @default(now())
+}

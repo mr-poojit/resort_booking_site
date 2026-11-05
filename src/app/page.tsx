@@ -1,69 +1,161 @@
 import Image from "next/image";
+import Link from "next/link";
+import { connection } from "next/server";
+import { StaySearchForm } from "@/components/guest-workflows";
 
-export default function Home() {
+export const instant = false;
+
+const stays = [
+  { name: "Rooms", count: "64 rooms", detail: "A slower start to the day." },
+  { name: "Villas", count: "12 villas", detail: "Room to settle in." },
+];
+
+export default async function Home() {
+  await connection();
+  const checkIn = futureDate(7);
+  const checkOut = futureDate(9);
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main
+      id="top"
+      className="mx-auto min-h-screen max-w-360 px-5 sm:px-8 lg:px-14"
+    >
+      <header className="border-line flex min-h-20 items-center justify-between border-b">
+        <a
+          href="#top"
+          className="text-estate-green text-xs font-semibold tracking-[0.12em]"
+        >
+          COMPANY A
+          <span className="text-muted-green mt-1 block text-[10px] font-normal tracking-[0.08em]">
+            COFFEE ESTATE · KARNATAKA
+          </span>
+        </a>
+        <nav
+          aria-label="Main navigation"
+          className="flex items-center gap-6 text-sm"
+        >
+          <a
+            className="hover:text-estate-green hidden transition-colors sm:inline"
+            href="#stays"
+          >
+            The stays
+          </a>
+          <a
+            className="hover:text-estate-green transition-colors"
+            href="#gatherings"
+          >
+            Gatherings
+          </a>
+        </nav>
+      </header>
+
+      <section className="grid items-center gap-10 py-10 sm:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-20">
+        <div className="max-w-xl">
+          <p className="text-muted-green mb-5 text-xs font-medium tracking-[0.16em] uppercase">
+            Chikkamagaluru, Karnataka
+          </p>
+          <h1 className="display-heading text-estate-green sm:text-display font-serif text-[3.5rem] leading-[0.98]">
+            A quieter kind of hillside stay.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-foreground/75 mt-6 max-w-md text-base leading-7">
+            A coffee-estate resort, with rooms, villas and space to gather.
+          </p>
+          <a
+            href="#stays"
+            className="border-copper text-estate-green hover:text-copper mt-8 inline-flex min-h-12 items-center border-b-2 px-1 text-sm font-medium transition-colors"
+          >
+            Find your stay{" "}
+            <span aria-hidden="true" className="ml-4 text-lg">
+              ↘
+            </span>
+          </a>
+        </div>
+
+        <figure className="relative aspect-[1.16] overflow-hidden rounded-sm bg-[#dfe5dc]">
+          <Image
+            src="/estate-placeholder.svg"
+            alt="Illustrative placeholder of a coffee-estate landscape; resort photography will replace it."
+            fill
+            preload
+            sizes="(max-width: 1024px) 100vw, 55vw"
+            className="object-cover"
+          />
+          <figcaption className="bg-soft-white/90 text-estate-green absolute right-3 bottom-3 px-3 py-2 text-[10px] tracking-[0.12em] uppercase">
+            Illustrative placeholder
+          </figcaption>
+        </figure>
+      </section>
+
+      <section aria-label="Search availability" className="py-2">
+        <StaySearchForm initial={{ checkIn, checkOut }} />
+      </section>
+
+      <section id="stays" className="border-line border-t py-12 sm:py-16">
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-muted-green text-xs tracking-[0.16em] uppercase">
+              Make yourself at home
+            </p>
+            <h2 className="text-title text-estate-green mt-2 font-serif">
+              Choose your stay
+            </h2>
+          </div>
+          <p className="text-foreground/65 hidden max-w-xs text-right text-sm leading-6 sm:block">
+            Compare current website availability and tax-inclusive rates.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="bg-line grid gap-px sm:grid-cols-2">
+          {stays.map((stay, index) => (
+            <Link
+              key={stay.name}
+              href="/stays"
+              className="bg-background hover:bg-soft-white p-6 transition-colors sm:p-8"
+            >
+              <span className="text-copper text-xs tracking-[0.14em] uppercase">
+                0{index + 1}
+              </span>
+              <div className="mt-7 flex flex-wrap items-baseline justify-between gap-3">
+                <h3 className="text-estate-green font-serif text-3xl">
+                  {stay.name}
+                </h3>
+                <span className="text-muted-green text-sm">{stay.count}</span>
+              </div>
+              <p className="text-foreground/70 mt-2 text-sm">{stay.detail}</p>
+            </Link>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section
+        id="gatherings"
+        className="border-line mb-12 flex flex-col gap-5 border-t py-10 sm:mb-16 sm:flex-row sm:items-center sm:justify-between sm:py-12"
+      >
+        <div>
+          <p className="text-muted-green text-xs tracking-[0.16em] uppercase">
+            Bring everyone together
+          </p>
+          <h2 className="text-estate-green mt-2 font-serif text-2xl">
+            Weddings and offsites
+          </h2>
+        </div>
+        <p className="text-foreground/70 max-w-md text-sm leading-6">
+          Lawns for weddings and offsites.{" "}
+          <Link
+            className="border-copper text-estate-green border-b"
+            href="/events"
+          >
+            Share your event details
+          </Link>
+          .
+        </p>
+      </section>
+
+      <footer className="border-line text-muted-green border-t py-5 text-xs">
+        Company A · Chikkamagaluru, Karnataka
+      </footer>
+    </main>
   );
+}
+
+function futureDate(offset: number): string {
+  return new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 }

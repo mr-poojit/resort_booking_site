@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --background: #faf7f2;
+  --foreground: #2b2118;
+  --estate-green: #2f4a3a;
+  --copper: #b5703a;
+  --muted-green: #75816d;
+  --soft-white: #fffefa;
+  --line: #ded8ce;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-estate-green: var(--estate-green);
+  --color-copper: var(--copper);
+  --color-muted-green: var(--muted-green);
+  --color-soft-white: var(--soft-white);
+  --color-line: var(--line);
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-display), Georgia, serif;
+  --text-display: 4.5rem;
+  --text-display--line-height: 0.98;
+  --text-title: 2rem;
+  --text-title--line-height: 1.12;
+  --spacing-18: 4.5rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: #d7dfd1;
+  color: var(--foreground);
+}
+
+:focus-visible {
+  outline: 3px solid var(--copper);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .display-heading {
+    font-size: 3rem;
+  }
 }
