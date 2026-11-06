@@ -32,7 +32,7 @@ const demoStaff: Array<StaffSession & { passwordHash: string }> = [
 
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 
-function signingKey(): Uint8Array {
+export function sessionSigningKey(): Uint8Array {
   const secret =
     process.env.AUTH_SECRET ??
     (process.env.NODE_ENV === "production"
@@ -43,13 +43,44 @@ function signingKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
+async function signInFromDatabase(
+  email: string,
+  password: string,
+): Promise<StaffSession | "skip" | null> {
+  if (!process.env.DATABASE_URL) return "skip";
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+      if (!user) return "skip";
+      if (
+        !user.active ||
+        !(await bcrypt.compare(password, user.passwordHash)) ||
+        !["RESERVATIONS", "SALES", "GM"].includes(user.role)
+      ) {
+        return null;
+      }
+      return { email: user.email, name: user.name, role: user.role };
+    } finally {
+      await prisma.$disconnect();
+    }
+  } catch {
+    return "skip";
+  }
+}
+
 export async function signIn(
   email: string,
   password: string,
 ): Promise<StaffSession | null> {
-  const user = demoStaff.find(
-    (candidate) => candidate.email === email.toLowerCase(),
-  );
+  const normalized = email.toLowerCase();
+  const databaseUser = await signInFromDatabase(normalized, password);
+  if (databaseUser !== "skip") return databaseUser;
+
+  const user = demoStaff.find((candidate) => candidate.email === normalized);
   if (!user || !(await bcrypt.compare(password, user.passwordHash)))
     return null;
   return { email: user.email, name: user.name, role: user.role };
@@ -62,7 +93,7 @@ export async function createSessionToken(
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("8h")
-    .sign(signingKey());
+    .sign(sessionSigningKey());
 }
 
 export async function readSession(
@@ -77,7 +108,7 @@ export async function readSession(
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, signingKey());
+    const { payload } = await jwtVerify(token, sessionSigningKey());
     if (
       typeof payload.email !== "string" ||
       typeof payload.name !== "string" ||

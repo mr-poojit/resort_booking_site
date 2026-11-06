@@ -94,25 +94,73 @@ export class LlmClassifier implements Classifier {
   }
 }
 
+export function llmConfigured(): boolean {
+  return Boolean(
+    process.env.LLM_PROVIDER &&
+    process.env.LLM_API_KEY &&
+    process.env.LLM_API_URL &&
+    process.env.LLM_MODEL,
+  );
+}
+
+/** Merge a rules result with an optional model result from the same message. */
+export function combineClassifications(
+  rules: ClassificationResult,
+  llm: ClassificationResult | null,
+): ClassificationResult {
+  if (!llm) return rules;
+
+  const complaint =
+    rules.complaintAlert ||
+    llm.complaintAlert ||
+    rules.category === "COMPLAINT" ||
+    llm.category === "COMPLAINT";
+  if (complaint) {
+    return {
+      category: "COMPLAINT",
+      confidence: Math.max(rules.confidence, llm.confidence, 0.3),
+      complaintAlert: true,
+      unsorted: false,
+      checkCategory: false,
+      modelVersion: `${rules.modelVersion}+${llm.modelVersion}`,
+    };
+  }
+
+  const disagree =
+    rules.unsorted || llm.unsorted || rules.category !== llm.category;
+  if (disagree) {
+    return {
+      category: "UNSURE",
+      confidence: Math.min(rules.confidence, llm.confidence),
+      complaintAlert: false,
+      unsorted: true,
+      checkCategory: false,
+      modelVersion: `${rules.modelVersion}+${llm.modelVersion}`,
+    };
+  }
+
+  const confidence = Math.min(rules.confidence, llm.confidence);
+  return {
+    category: rules.category,
+    confidence,
+    complaintAlert: false,
+    unsorted: false,
+    checkCategory: confidence < 0.8 || rules.checkCategory || llm.checkCategory,
+    modelVersion: `${rules.modelVersion}+${llm.modelVersion}`,
+  };
+}
+
 export async function classifyWithFallback(
   text: string,
 ): Promise<ClassificationResult> {
-  const rules = await new RulesClassifier().classify(text);
-  if (rules.complaintAlert || rules.unsorted) return rules;
-  if (
-    !process.env.LLM_PROVIDER ||
-    !process.env.LLM_API_KEY ||
-    !process.env.LLM_API_URL ||
-    !process.env.LLM_MODEL
-  ) {
-    return rules;
-  }
+  const rulesPromise = new RulesClassifier().classify(text);
+  if (!llmConfigured()) return rulesPromise;
 
-  try {
-    return await new LlmClassifier().classify(text);
-  } catch {
-    return rules;
-  }
+  const [rules, llm] = await Promise.all([
+    rulesPromise,
+    new LlmClassifier().classify(text).catch(() => null),
+  ]);
+  return combineClassifications(rules, llm);
 }
 
 export function maskContactDetails(text: string): string {

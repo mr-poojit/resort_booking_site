@@ -624,7 +624,9 @@ export function BookingFlow({ initial }: { initial: SearchValues }) {
                 Test payment
               </h1>
               <p className="text-foreground/70 mt-2 text-sm leading-6">
-                No card details are collected. Choose a test outcome below.
+                No card details are collected. Choose a test outcome below. A
+                free live demo can later swap these buttons for Razorpay test
+                mode or Stripe test mode.
               </p>
             </div>
             <div className="border-line flex items-center justify-between border-y py-3 text-sm">
@@ -871,8 +873,13 @@ export function EventEnquiryForm() {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error ?? "Enquiry could not be sent.");
+      const review = data.enquiry.classification;
       setMessage(
-        `Thank you. Your enquiry ${data.enquiry.ref} is with our ${data.enquiry.owner} team.`,
+        review?.unsorted
+          ? `Thank you. Enquiry ${data.enquiry.ref} is unsure, so a person will sort it before anyone replies.`
+          : review?.checkCategory
+            ? `Thank you. Enquiry ${data.enquiry.ref} may belong with ${data.enquiry.owner}. They will check the category.`
+            : `Thank you. Your enquiry ${data.enquiry.ref} is with our ${data.enquiry.owner} team.`,
       );
       formElement.reset();
     } catch (cause) {

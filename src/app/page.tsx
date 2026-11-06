@@ -51,6 +51,12 @@ export default async function Home() {
           >
             Gatherings
           </a>
+          <Link
+            className="hover:text-estate-green transition-colors"
+            href="/account"
+          >
+            Account
+          </Link>
         </nav>
       </header>
 

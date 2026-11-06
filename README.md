@@ -27,11 +27,15 @@ Open http://localhost:3000. The Prisma schema and repeatable seed are available,
 
 ## Demo accounts
 
-Open `/admin` and use password `EstateDemo2026!` with one of these fake accounts:
+Open `/account` for a guest. The seeded guest is `guest@wildfern.example` with password `EstateDemo2026!`. Guests can also create their own email account or continue with Google when those keys are set.
+
+Open `/admin` and use the same password with one of these staff roles:
 
 - `reservations@company-a.example` can change rates/allotment, view bookings, cancel, export, and triage enquiries.
 - `sales@company-a.example` can work the enquiry inbox.
 - `gm@company-a.example` has Reservations access plus promos and the audit view.
+
+If `DATABASE_URL` is set and Postgres has been seeded, staff sign-in reads those database users and roles. Otherwise the same three demo accounts are used. The inbox refreshes every few seconds, so a guest enquiry shows up while the staff console is open. Rules and an optional model classify that enquiry at the same time; a complaint stays a complaint, and a disagreement or low-confidence result stays unsorted for a person to review.
 
 Set `SEED_DEMO_PASSWORD` to change the shared local demo password. These accounts must not be used in a real deployment.
 

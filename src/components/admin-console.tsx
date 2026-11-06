@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { formatRupees } from "@/server/core";
 
 type StaffUser = {
@@ -95,6 +95,8 @@ export function AdminConsole({ initialDate }: { initialDate: string }) {
   const [exportDate, setExportDate] = useState(initialDate);
 
   const selectedEnquiry = enquiries.find((item) => item.ref === selectedRef);
+  const selectedRefRef = useRef(selectedRef);
+  selectedRefRef.current = selectedRef;
   const tabs = useMemo<Tab[]>(
     () =>
       user?.role === "SALES"
@@ -129,25 +131,43 @@ export function AdminConsole({ initialDate }: { initialDate: string }) {
         .then((data) => setBookings(data.bookings))
         .catch((cause: unknown) => setError(messageOf(cause)));
     }
-    if (tab === "inbox") {
-      fetch("/api/enquiries")
-        .then(readJson)
-        .then((data) => {
-          setEnquiries(data.enquiries);
-          if (data.enquiries[0]) {
-            setSelectedRef(data.enquiries[0].ref);
-            setReply(data.enquiries[0].draft ?? "");
-            setRerouteOwner(data.enquiries[0].owner);
-          }
-        })
-        .catch((cause: unknown) => setError(messageOf(cause)));
-    }
     if (tab === "audit" && user.role === "GM") {
       fetch("/api/admin/audit")
         .then(readJson)
         .then((data) => setAuditEntries(data.entries))
         .catch((cause: unknown) => setError(messageOf(cause)));
     }
+  }, [tab, user]);
+
+  useEffect(() => {
+    if (!user || tab !== "inbox") return;
+    let active = true;
+
+    async function loadInbox() {
+      try {
+        const response = await fetch("/api/enquiries");
+        const data = await readJson(response);
+        if (!active) return;
+        const nextEnquiries = data.enquiries as typeof enquiries;
+        setEnquiries(nextEnquiries);
+        const current = selectedRefRef.current;
+        if (current && nextEnquiries.some((item) => item.ref === current))
+          return;
+        const next = nextEnquiries[0];
+        setSelectedRef(next?.ref ?? "");
+        setReply(next?.draft ?? "");
+        if (next) setRerouteOwner(next.owner);
+      } catch (cause: unknown) {
+        if (active) setError(messageOf(cause));
+      }
+    }
+
+    void loadInbox();
+    const timer = window.setInterval(() => void loadInbox(), 4000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
   }, [tab, user]);
 
   function selectEnquiry(ref: string) {

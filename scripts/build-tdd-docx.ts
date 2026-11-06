@@ -141,7 +141,7 @@ paragraph(
   "RulesClassifier is deterministic and works without credentials. It classifies room, wedding, corporate offsite, complaint, or unsure messages; complaint keyword matches override other categories and route to the GM. Low-confidence or ambiguous cases enter Unsorted; medium-confidence cases are marked Check category.",
 );
 paragraph(
-  "An optional OpenAI-compatible LlmClassifier masks email addresses and phone numbers, sends no tools, requests JSON, validates output with Zod, and has a 10-second timeout. Missing configuration, timeout, invalid JSON, or provider error falls back to rules. Draft prices are derived from the server rate/allotment lookup; drafts are not sent without a staff action.",
+  "When the LLM environment variables are set, the rules classifier and the OpenAI-compatible LlmClassifier run at the same time. The model masks email addresses and phone numbers, sends no tools, requests JSON, validates output with Zod, and has a 10-second timeout. Missing configuration, timeout, invalid JSON, or provider error keeps the rules result. Disagreement or an unsure result stays unsorted for a person. Complaint keywords still override the model. Draft prices come from the server rate/allotment lookup and are not sent without a staff action. The staff inbox polls so a guest enquiry appears while that console is open.",
 );
 paragraph(
   "The checked-in evaluation contains 24 hand-labeled examples and reports 100% accuracy and 100% complaint alert recall on that authored set. This small, self-authored result is a smoke test, not a real-world model quality claim.",

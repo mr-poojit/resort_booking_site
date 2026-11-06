@@ -21,9 +21,10 @@ export default function PrivacyPage() {
         <p className="text-foreground/75 mt-4 text-sm leading-7">
           Contact details are used for booking and enquiry follow-up. Enquiry
           and booking records in this demo are held in server memory and reset
-          when the local server restarts. A production retention period and DPDP
-          deletion/export workflow must be confirmed with the resort owner
-          before launch.
+          when the local server restarts. Guest accounts (name, email, and a
+          password hash or Google account id) are stored in a local file on the
+          server. A production retention period and DPDP deletion/export
+          workflow must be confirmed with the resort owner before launch.
         </p>
         <p className="text-foreground/75 mt-4 text-sm leading-7">
           Consent text version {"booking-consent-v1"} and its timestamp are
