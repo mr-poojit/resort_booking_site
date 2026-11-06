@@ -96,7 +96,9 @@ export function AdminConsole({ initialDate }: { initialDate: string }) {
 
   const selectedEnquiry = enquiries.find((item) => item.ref === selectedRef);
   const selectedRefRef = useRef(selectedRef);
-  selectedRefRef.current = selectedRef;
+  useEffect(() => {
+    selectedRefRef.current = selectedRef;
+  }, [selectedRef]);
   const tabs = useMemo<Tab[]>(
     () =>
       user?.role === "SALES"
